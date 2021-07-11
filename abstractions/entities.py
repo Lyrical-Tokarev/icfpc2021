@@ -47,7 +47,6 @@ class PlacementValidator(Validator):
         return True
 
 
-
 class EdgesValidator(Validator):
     def __init__(self, edges, vertices, hole, epsilon):
         self.edges = edges
@@ -61,7 +60,8 @@ class EdgesValidator(Validator):
         assert len(self.vertices) == len(new_vertices)
         new_dist = [get_dist(new_vertices[i], new_vertices[j]) for i, j in self.edges]
         conditions = [
-            np.abs(dn / do - 1) <= epsilon / 10 ** 6 for dn, do in zip(new_dist, self.dist)
+            np.abs(dn / do - 1) <= epsilon / 10 ** 6
+            for dn, do in zip(new_dist, self.dist)
         ]
         return np.all(conditions)
 
@@ -97,6 +97,13 @@ class Figure:
     def validate(self, new_vertices):
         results = [v.check(v) for v in self.validators]
         return np.all(results)
+
+    def compute_edge_diff(self, new_pos, s, e):
+        a, b = new_pos[s], new_pos[e]
+        x, y = self.vertices[s], self.vertices[e]
+        do = len2(x, y)
+        dn = len2(a, b)
+        return dn / do
 
     def evaluate(self, new_vertices):
         """Computes metric for figure's coordinates

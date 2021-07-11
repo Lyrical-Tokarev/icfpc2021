@@ -11,6 +11,7 @@ sys.path.append("abstractions")
 from entities import Figure
 from communicator import Communicator
 
+
 def read_submission_result(sol_dir):
     "checks if there is file status.json in the solution directory and returns its contents"
     path = os.path.join(sol_dir, "status.json")
@@ -20,6 +21,7 @@ def read_submission_result(sol_dir):
         data = json.load(f)
     return data
 
+
 def get_pose_id(sol_dir):
     "checks if there is file pose_info.json in the solution dir"
     path = os.path.join(sol_dir, "pose_info.json")
@@ -27,19 +29,24 @@ def get_pose_id(sol_dir):
         return
     with open(path) as f:
         data = json.load(f)
-    return data['pose_id']
+    return data["pose_id"]
+
 
 def save_submission_status(sol_dir, pose_info):
     path = os.path.join(sol_dir, "pose_info.json")
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         json.dump(pose_info, f)
+
 
 def get_submission_status(communicator, problem_id, pose_id):
     communicator.get_pose_id(pose_id)
     pass
 
+
 def get_valid_solution(sol_dir, problem_path):
-    candidates = [x for x in os.listdir(sol_dir) if x.startswith("solution") and x[-5:]==".json"]
+    candidates = [
+        x for x in os.listdir(sol_dir) if x.startswith("solution") and x[-5:] == ".json"
+    ]
     valid_path = None
     with open(problem_path) as f:
         problem = json.load(f)
@@ -61,19 +68,25 @@ def send_solution(communicator, problem_id, path):
     status, text = communicator.post_problem(i, data=data)
     directory = os.path.dirname(path)
     status_path = os.path.join(directory, "status.json")
-    data['pose_id'] = text
-    data['path'] = path
-    with open(status_path, 'w') as f:
+    data["pose_id"] = text
+    data["path"] = path
+    with open(status_path, "w") as f:
         json.dump(data, f)
     return text
 
 
 @click.command()
-@click.argument('start', type=int)  # help="start puzzle id",
-@click.argument('end', type=int)  # help="end puzzle id", 
-@click.option('--solution_dir', default="solutions", help='directory with solutions to check (writable)')
-@click.option('--problem_dir', default="data", help='directory with solutions to check (writable)')
-@click.option('--verbose', default=False)
+@click.argument("start", type=int)  # help="start puzzle id",
+@click.argument("end", type=int)  # help="end puzzle id",
+@click.option(
+    "--solution_dir",
+    default="solutions",
+    help="directory with solutions to check (writable)",
+)
+@click.option(
+    "--problem_dir", default="data", help="directory with solutions to check (writable)"
+)
+@click.option("--verbose", default=False)
 def check_and_send(start, end, solution_dir, problem_dir, verbose):
     # iterate over solution directories
     # find valid solution with best score
@@ -89,15 +102,15 @@ def check_and_send(start, end, solution_dir, problem_dir, verbose):
         if not os.path.exists(problem_dir):
             continue
         solutions = sorted(os.listdir(problem_dir), key=int(lambda x: x.split("_")[1]))
-        solutions = [os.path.join(problem_dir, x)for x in solutions]
+        solutions = [os.path.join(problem_dir, x) for x in solutions]
         for sol_dir in solutions:
             result = read_submission_result(sol_dir)
             if result is not None:
                 if verbose:
                     print(f"Problem {i} was solved previosly, result=", result)
-                if result['status'] == "VALID":
+                if result["status"] == "VALID":
                     break
-                if result['status'] == "INVALID":
+                if result["status"] == "INVALID":
                     continue
             pose_id = get_pose_id(sol_dir)
             if pose_id is not None:
@@ -114,5 +127,5 @@ def check_and_send(start, end, solution_dir, problem_dir, verbose):
     pass
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     check_and_send()

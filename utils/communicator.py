@@ -18,19 +18,13 @@ class Communicator:
     def get_hello(self):
         api_key = os.getenv("POSES_API_KEY", None)
         url = f"{self.base_url}/api/hello"
-        response = requests.get(
-            url,
-            headers={"Authorization": f"Bearer {api_key}"}
-        )
+        response = requests.get(url, headers={"Authorization": f"Bearer {api_key}"})
         return response.json()
 
     def get_problem(self, problem_id=0):
         api_key = os.getenv("POSES_API_KEY", None)
         url = f"{self.base_url}/api/problems/{problem_id}"
-        response = requests.get(
-            url,
-            headers={"Authorization": f"Bearer {api_key}"}
-        )
+        response = requests.get(url, headers={"Authorization": f"Bearer {api_key}"})
         if not response.ok:
             return None
         return response.json()
@@ -42,28 +36,25 @@ class Communicator:
             print("provide some data next time")
             return None
         response = requests.post(
-            url,
-            headers={"Authorization": f"Bearer {api_key}"},
-            json=data
+            url, headers={"Authorization": f"Bearer {api_key}"}, json=data
         )
         return response.ok, response.text
 
     def get_pose_id(self, problem_id=0, pose_id=""):
         api_key = os.getenv("POSES_API_KEY", None)
         url = f"{self.base_url}/api/problems/{problem_id}/solutions/{pose_id}"
-        response = requests.get(
-            url,
-            headers={"Authorization": f"Bearer {api_key}"}
-        )
+        response = requests.get(url, headers={"Authorization": f"Bearer {api_key}"})
         if not response.ok:
             return None
         return response.json()
 
 
 @click.command()
-@click.argument('target_dir', type=click.Path())  # , help="directory where the puzzles will be saved")
-@click.argument('start', type=int)  # , help="start puzzle id to download")
-@click.argument('end', type=int)  # , help='max puzzle id+1')
+@click.argument(
+    "target_dir", type=click.Path()
+)  # , help="directory where the puzzles will be saved")
+@click.argument("start", type=int)  # , help="start puzzle id to download")
+@click.argument("end", type=int)  # , help='max puzzle id+1')
 def download_data(target_dir, start, end):
     communicator = Communicator()
     response = communicator.get_hello()
@@ -78,11 +69,11 @@ def download_data(target_dir, start, end):
         if data is None:
             print("Problem_id=", problem_id, " - not available")
             continue
-        path = os.path.join(target_dir, "problem_"+ str(problem_id) + ".json")
+        path = os.path.join(target_dir, "problem_" + str(problem_id) + ".json")
         # if not os.path.exists(path):
         #     os.makedirs(path)
         # path = os.path.join(path, "problem.json")
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             f.write(json.dumps(data))
 
 
