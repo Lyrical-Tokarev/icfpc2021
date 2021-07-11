@@ -115,6 +115,25 @@ def get_best_sequences(approx_sequences, data):
     return min_dist, new_seq
 
 
+def save_best_solutions(solutions_dir, problem_id, solutions, figure):
+    saved = []
+
+    for i, vertices in enumerate(solutions):
+        if not figure.validate(vertices):
+            continue
+        dist = figure.evaluate(vertices)
+        path = os.path.join(solutions_dir, str(problem_id), f"geom_{dist}")
+        if not os.path.exists(path):
+            os.makedirs(path)
+        j = len(saved)
+        filename = os.path.join(path, f"solution_{j}")
+        draw_pair(figure, filename=filename+".png", new_vert=vertices, distance=dist)
+        with open(filename + ".json", "w") as f:
+            json.dump(vertices, f)
+        saved.append(i)
+    return saved
+
+
 if __name__ == "__main__":
     # some checks
     print(sums([1, 1]))

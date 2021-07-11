@@ -82,7 +82,7 @@ def draw_problem(i):
     plt.show()
 
 
-def draw_pair(figure, filename=None, label="", new_vert=[]):
+def draw_pair(figure, filename=None, label="", new_vert=[], distance=-1):
     hole_poly = Polygon(figure.hole)
     # figure = data['figure']
     # vertices = figure['vertices']
@@ -102,8 +102,8 @@ def draw_pair(figure, filename=None, label="", new_vert=[]):
         new_vert = sorted(set([ c for x in figure_shape.geoms for c in x.coords[:]]))
     # print(repr(new_vert), flush=True)
     #dist = get_distance(hole_poly, figure_shape)
-    dist = get_distance(data, new_vert)
-    plt.title(f"Current distance: {dist} - {label}")
+    # dist = get_distance(data, new_vert)
+    plt.title(f"Current distance: {distance} - {label}")
     # hole_poly.bounds
     x0, y0, x1, y1 = hole_poly.union(figure_shape).bounds
 
