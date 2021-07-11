@@ -8,7 +8,8 @@ from common import *
 
 
 def compute_forces(
-    figure, current_pos, orig_edges, targets, sources, epsilon, magnets=dict()
+    figure, current_pos, # orig_edges, targets, sources, epsilon,
+    magnets=dict()
 ):
     sources = figure.vertices
     forces = defaultdict(list)
@@ -21,8 +22,8 @@ def compute_forces(
     for src, tgts in magnets.items():
         u = current_pos[src]
         for t in tgts:
-            v = targets[t]
-            d = vect(u, v)
+            v = figure.hole[t]
+            d = vector(u, v)
             # print(src, tgts, length(d))
             if length(d) < 10:  # and len(tgts)==1: # was 1 condition
                 m = 1.0
@@ -31,9 +32,10 @@ def compute_forces(
             else:
                 m = 0.5  # was:0.5
             forces[src].append(mult(d, m))
-    for s, e in orig_edges:
-        edge_diff = figure.compute_edge_diff(current_pos, s, e) - 1
-        # a, b = current_pos[s], current_pos[e]
+    for s, e in figure.edges:
+        dn, do = figure.compute_edge_diff(current_pos, s, e)
+        edge_diff = dn/do-1
+        a, b = current_pos[s], current_pos[e]
         # u, v = sources[s], sources[e]
         # dn = len2(vect(a, b))
         # do = len2(vect(u, v))
@@ -43,9 +45,9 @@ def compute_forces(
         #     direction = -1*(np.sqrt(do) - np.sqrt(dn))
         # else:
         #     direction = 0.01
-        if edge_diff >= epsilon / 10 ** 6:
+        if edge_diff >= figure.epsilon / 10 ** 6:
             direction = 1 * (np.sqrt(dn) - np.sqrt(do))
-        elif edge_diff <= -epsilon / 10 ** 6:
+        elif edge_diff <= - figure.epsilon / 10 ** 6:
             direction = -1 * (np.sqrt(do) - np.sqrt(dn))
         else:
             direction = 0.01
@@ -71,8 +73,9 @@ def modify_pos(pos, delta, forces, verbose=True):
     return [(p + f * delta) for p, f in zip(pos, force)]
 
 
-def optimize_positions(figure, current_pos, n_iterations=100, magnets=dict()):
-
+def optimize_positions(figure, current_pos, n_iterations=100, magnets=dict(), delta=0.1,
+        solutions_dir="solutions_new", problem_id=0):
+    n = len(current_pos)
     magnets_ = magnets
     for k in range(n_iterations):
         if k > 40:
@@ -80,15 +83,20 @@ def optimize_positions(figure, current_pos, n_iterations=100, magnets=dict()):
         # if k > 70:
         #    magnets_= dict()
         forces = compute_forces(
-            figure, current_pos, orig_edges, targets, sources, epsilon, magnets=magnets_
+            figure, current_pos, #  orig_edges, targets, sources, epsilon,
+            magnets=magnets_
         )
         current_pos = [modify_pos(current_pos[i], delta, forces[i]) for i in range(n)]
+        print("current_pos", current_pos)
+        solutions = get_best(figure, current_pos)
+        print("sol:", solutions)
         # print(current_pos)
-        figure_shape = MultiLineString(
-            [(current_pos[s], current_pos[e]) for s, e in edges]
-        )
-
-        # if i%2==0:
-        draw_pair(
-            hole_poly, figure_shape, filename=None, label=str(i), new_vert=current_pos
-        )
+        save_best_solutions(solutions_dir, problem_id, solutions, figure)
+        # figure_shape = MultiLineString(
+        #     [(current_pos[s], current_pos[e]) for s, e in edges]
+        # )
+        #
+        # # if i%2==0:
+        # draw_pair(
+        #     hole_poly, figure_shape, filename=None, label=str(i), new_vert=current_pos
+        # )

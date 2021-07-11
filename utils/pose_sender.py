@@ -6,7 +6,7 @@ import json
 import os
 import sys
 
-print(os.getcwd())
+print("cwd=", os.getcwd())
 sys.path.append("abstractions")
 from entities import Figure
 from communicator import Communicator
@@ -33,13 +33,14 @@ def get_pose_id(sol_dir):
 
 
 def save_submission_status(sol_dir, pose_info):
-    path = os.path.join(sol_dir, "pose_info.json")
+    path = os.path.join(sol_dir, "status.json")
     with open(path, "w") as f:
         json.dump(pose_info, f)
 
 
 def get_submission_status(communicator, problem_id, pose_id):
-    communicator.get_pose_id(pose_id)
+    data = communicator.get_pose_status(problem_id=problem_id, pose_id=pose_id)
+    return data
     pass
 
 
@@ -56,7 +57,7 @@ def get_valid_solution(sol_dir, problem_path):
         path = os.path.join(sol_dir, filename)
         with open(path) as f:
             data = json.load(f)
-        if figure.validate(data):
+        if figure.validate(data['vertices']):
             valid_path = path
             break
     return valid_path
@@ -65,9 +66,9 @@ def get_valid_solution(sol_dir, problem_path):
 def send_solution(communicator, problem_id, path):
     with open(path) as f:
         data = json.load(f)
-    status, text = communicator.post_problem(i, data=data)
+    status, text = communicator.post_problem(problem_id, data=data)
     directory = os.path.dirname(path)
-    status_path = os.path.join(directory, "status.json")
+    status_path = os.path.join(directory, "pose_info.json")
     data["pose_id"] = text
     data["path"] = path
     with open(status_path, "w") as f:
@@ -80,7 +81,7 @@ def send_solution(communicator, problem_id, path):
 @click.argument("end", type=int)  # help="end puzzle id",
 @click.option(
     "--solution_dir",
-    default="solutions",
+    default="solutions_new",
     help="directory with solutions to check (writable)",
 )
 @click.option(
@@ -97,20 +98,22 @@ def check_and_send(start, end, solution_dir, problem_dir, verbose):
         print(f"{solution_dir} doesn't exist, exiting")
         return
     communicator = Communicator()
+    print("starting", start, end)
     for i in range(start, end + 1):
-        problem_dir = os.path.join(solution_dir, str(i))
-        if not os.path.exists(problem_dir):
+        data_dir = os.path.join(solution_dir, str(i))
+        if not os.path.exists(data_dir):
             continue
-        solutions = sorted(os.listdir(problem_dir), key=int(lambda x: x.split("_")[1]))
-        solutions = [os.path.join(problem_dir, x) for x in solutions]
+        solutions = sorted(os.listdir(data_dir), key=lambda x: int(x.split("_")[1]))
+        solutions = [os.path.join(data_dir, x) for x in solutions]
         for sol_dir in solutions:
             result = read_submission_result(sol_dir)
             if result is not None:
+                print(result)
                 if verbose:
                     print(f"Problem {i} was solved previosly, result=", result)
-                if result["status"] == "VALID":
+                if result["state"] == "VALID":
                     break
-                if result["status"] == "INVALID":
+                if result["state"] == "INVALID":
                     continue
             pose_id = get_pose_id(sol_dir)
             if pose_id is not None:

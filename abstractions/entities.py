@@ -17,7 +17,7 @@ class IntValidator(Validator):
         pass
 
     def check(self, new_vertices):
-        results = [x.is_integer() for xs in new_vertices for x in xs]
+        results = [(x.is_integer() if isinstance(x, float) else isinstance(x, int)) for xs in new_vertices for x in xs]
         return np.all(results)
 
     # def check(self, edges, vertices, hole, epsilon):
@@ -38,8 +38,8 @@ class PlacementValidator(Validator):
             if r < 0:
                 return False
         # 2. test for line intersection
-        for x, y in zip(hole, np.roll(hole, -1)):
-            for i, j in edges:
+        for x, y in zip(self.hole, np.roll(self.hole, -1)):
+            for i, j in self.edges:
                 a = new_vertices[i]
                 b = new_vertices[j]
             if have_intersection([x, y], [a, b]):
@@ -60,7 +60,7 @@ class EdgesValidator(Validator):
         assert len(self.vertices) == len(new_vertices)
         new_dist = [get_dist(new_vertices[i], new_vertices[j]) for i, j in self.edges]
         conditions = [
-            np.abs(dn / do - 1) <= epsilon / 10 ** 6
+            np.abs(dn / do - 1) <= self.epsilon / 10 ** 6
             for dn, do in zip(new_dist, self.dist)
         ]
         return np.all(conditions)
@@ -95,7 +95,7 @@ class Figure:
         ]
 
     def validate(self, new_vertices):
-        results = [v.check(v) for v in self.validators]
+        results = [v.check(new_vertices) for v in self.validators]
         return np.all(results)
 
     def compute_edge_diff(self, new_pos, s, e):
@@ -103,12 +103,12 @@ class Figure:
         x, y = self.vertices[s], self.vertices[e]
         do = len2(x, y)
         dn = len2(a, b)
-        return dn / do
+        return dn, do
 
     def evaluate(self, new_vertices):
         """Computes metric for figure's coordinates
         """
-        distances = [np.min([get_dist(h, v) for v in new_vertices]) for h in hole]
+        distances = [np.min([get_dist(h, v) for v in new_vertices]) for h in self.hole]
         return np.sum(distances)
 
     def make_fold(self, vertices):

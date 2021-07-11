@@ -92,7 +92,7 @@ def draw_problem(i):
     plt.show()
 
 
-def draw_pair(figure, filename=None, label="", new_vert=[], distance=-1):
+def draw_pair(figure, filename=None, label="", new_vert=[], distance=-1, show=True):
     hole_poly = Polygon(figure.hole)
     # figure = data['figure']
     # vertices = figure['vertices']
@@ -123,4 +123,5 @@ def draw_pair(figure, filename=None, label="", new_vert=[], distance=-1):
 
     if filename is not None:
         fig.savefig(filename)
-    plt.show()
+    if show:
+        plt.show()

@@ -1,7 +1,7 @@
 """
 class to communicate with icfpc server.
 also script which downloads data.
-The code expect environment variable 
+The code expect environment variable
 POSES_API_KEY to be set (to team's secret key)
 """
 import os
@@ -38,14 +38,15 @@ class Communicator:
         response = requests.post(
             url, headers={"Authorization": f"Bearer {api_key}"}, json=data
         )
-        return response.ok, response.text
+        return response.ok, response.json()["id"]
 
-    def get_pose_id(self, problem_id=0, pose_id=""):
+    def get_pose_status(self, problem_id=0, pose_id=""):
         api_key = os.getenv("POSES_API_KEY", None)
         url = f"{self.base_url}/api/problems/{problem_id}/solutions/{pose_id}"
+        print(url)
         response = requests.get(url, headers={"Authorization": f"Bearer {api_key}"})
         if not response.ok:
-            return None
+            return response.text
         return response.json()
 
 

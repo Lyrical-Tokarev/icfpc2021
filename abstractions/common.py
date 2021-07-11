@@ -1,6 +1,8 @@
 import json
 import numpy as np
-
+from collections import defaultdict
+import os
+from viewer import draw_pair
 
 def read_problem(path):
     with open(path) as f:
@@ -37,12 +39,12 @@ def dot(a, b):
     return np.sum([x * y for x, y in zip(a, b)])
 
 
-def len2(a):
-    return dot(a, a)
+def len2(a, b):
+    return np.sum([(x-y)**2 for x, y in zip(a, b)])
 
 
 def length(a):
-    return np.sqrt(len2(a))
+    return np.sqrt(dot(a, a))
 
 
 def vector(a, b):
@@ -82,10 +84,10 @@ def validate_distance(v, u, new_v, new_u, epsilon=0):
     return np.abs(new_d / old_d - 1) <= epsilon / 1000000
 
 
-def get_approximated(edges, new_vertices, vertices, epsilon=0):
+def get_approximated(figure, new_vertices, epsilon=0):
     neighbors = defaultdict(set)
 
-    for x, y in edges:
+    for x, y in figure.edges:
         # if x > y:
         neighbors[x].add(y)
         # else:
@@ -115,7 +117,7 @@ def get_approximated(edges, new_vertices, vertices, epsilon=0):
                 neigh = [s for s in neighbors[i] if s < i]
                 val_results = [
                     validate_distance(
-                        vertices[s], vertices[i], prefix[s], v, epsilon=epsilon
+                        figure.vertices[s], figure.vertices[i], prefix[s], v, epsilon=epsilon
                     )
                     for s in neigh
                 ] + [True]
@@ -128,18 +130,25 @@ def get_approximated(edges, new_vertices, vertices, epsilon=0):
     return sequences
 
 
-def get_best_sequences(approx_sequences, data):
+def get_best_sequences(approx_sequences, figure):
     new_seq = []
     min_dist = None
     for seq in approx_sequences:
-        dist_data = [np.min([get_dist(p, q) for q in seq]) for p in data["hole"]]
-        dist = np.sum(dist_data)
+        dist = figure.evaluate(seq)
+        #dist_data = [np.min([get_dist(p, q) for q in seq]) for p in figure.hole]
+        #dist = np.sum(dist_data)
         if min_dist is None or min_dist > dist:
             min_dist = dist
             new_seq = [seq]
         elif dist == min_dist:
             new_seq.append(seq)
     return min_dist, new_seq
+
+
+def get_best(figure, new_vertices):
+    approx_sequences = get_approximated(figure, new_vertices, epsilon=figure.epsilon)
+    min_dist, approx_vertices_seqs = get_best_sequences(approx_sequences, figure)
+    return approx_vertices_seqs
 
 
 def save_best_solutions(solutions_dir, problem_id, solutions, figure):
@@ -154,9 +163,9 @@ def save_best_solutions(solutions_dir, problem_id, solutions, figure):
             os.makedirs(path)
         j = len(saved)
         filename = os.path.join(path, f"solution_{j}")
-        draw_pair(figure, filename=filename + ".png", new_vert=vertices, distance=dist)
+        draw_pair(figure, filename=filename + ".png", new_vert=vertices, distance=dist, show=False)
         with open(filename + ".json", "w") as f:
-            json.dump(vertices, f)
+            json.dump({"vertices": vertices}, f)
         saved.append(i)
     return saved
 

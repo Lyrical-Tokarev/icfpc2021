@@ -2,6 +2,8 @@
 """
 import sys
 import os
+from collections import defaultdict
+import numpy as np
 sys.path.append("abstractions")
 from common import read_problem
 from entities import Figure
@@ -15,11 +17,19 @@ if __name__=="__main__":
     figure = Figure(data)
     current_pos = data['figure']['vertices']
     magnets = {
-        0 : [0], 
+        0 : [0],
         1: [5],
         2: [4],
         3: [1],
         4: [3],
         5: [2]
     }
-    optimize_positions(figure, current_pos, n_iterations=100, magnets=magnets)
+    # n = len(figure.hole)
+    # magnets = defaultdict(list)
+    # for i in range(n):
+    #     k = np.random.choice(len(figure.vertices))
+    #     magnets[k].append(i)
+
+    print(figure.vertices, figure.hole)
+    optimize_positions(figure, current_pos, n_iterations=100, magnets=magnets,
+        solutions_dir="solutions_new", problem_id=problem_id)
