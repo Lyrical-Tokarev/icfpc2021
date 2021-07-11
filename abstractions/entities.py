@@ -38,8 +38,13 @@ class PlacementValidator(Validator):
             if r < 0:
                 return False
         # 2. test for line intersection
-        # for x, y in zip(hole, np.roll(hole, -1)):
-            
+        for x, y in zip(hole, np.roll(hole, -1)):
+            for i, j in edges:
+                a = new_vertices[i]
+                b = new_vertices[j]
+            if have_intersection([x, y], [a, b]):
+                return False
+        return True
 
 
 
@@ -56,7 +61,7 @@ class EdgesValidator(Validator):
         assert len(self.vertices) == len(new_vertices)
         new_dist = [get_dist(new_vertices[i], new_vertices[j]) for i, j in self.edges]
         conditions = [
-            dn / do <= epsilon / 10 ** 6 for dn, do in zip(new_dist, self.dist)
+            np.abs(dn / do - 1) <= epsilon / 10 ** 6 for dn, do in zip(new_dist, self.dist)
         ]
         return np.all(conditions)
 

@@ -50,6 +50,71 @@ def have_intersection(a, b):
     # return n / d
 
 
+def validate_distance(v, u, new_v, new_u, epsilon=0):
+    old_d = get_dist(v, u)
+    new_d = get_dist(new_v, new_u)
+    return np.abs(new_d/old_d - 1)<= epsilon/1000000
+
+def get_approximated(edges, new_vertices, vertices, epsilon=0):
+    neighbors = defaultdict(set)
+
+    for x, y in edges:
+        #if x > y:
+        neighbors[x].add(y)
+        #else:
+        neighbors[y].add(x)
+    
+    sequences = []
+    for i, (x, y) in enumerate(new_vertices):
+        xa, xb = int(np.floor(x)), int(np.ceil(x))
+        ya, yb = int(np.floor(y)), int(np.ceil(y))
+        variants = [(xa, ya)]
+        if ya != yb:
+            variants.append((xa, yb))
+        if xa != xb:
+            variants.append((xb, ya))
+            if ya!=yb:
+                variants.append((xb, yb))
+        # print(i, variants)
+        if i == 0:
+            new_sequences = []
+            for v in variants:
+                new_sequences.append([v])
+            sequences = new_sequences
+            continue
+        new_sequences = []
+        for prefix in sequences:
+            for v in variants:
+                neigh = [s for s in neighbors[i] if s < i]
+                val_results = [
+                    validate_distance(vertices[s], vertices[i], prefix[s], v, epsilon=epsilon)
+                    for s in neigh
+                ] + [True]
+                if not np.all(val_results):
+                    continue
+
+                new_sequences.append(prefix + [v])
+                # print(i, prefix, v, neighbors[i])
+        sequences = new_sequences
+    return sequences
+
+def get_best_sequences(approx_sequences, data):
+    new_seq = []
+    min_dist = None
+    for seq in approx_sequences:
+        dist_data = [
+            np.min([get_dist(p, q) for q in seq])
+            for p in data['hole']
+        ]
+        dist = np.sum(dist_data)
+        if min_dist is None or min_dist > dist:
+            min_dist = dist
+            new_seq = [seq]
+        elif dist == min_dist:
+            new_seq.append(seq)
+    return min_dist, new_seq
+
+
 if __name__ == "__main__":
     # some checks
     print(sums([1, 1]))
