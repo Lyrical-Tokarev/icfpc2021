@@ -4,7 +4,7 @@ basic abstractions: player's figure, hole and so on.
 import numpy as np
 from scipy.spatial import Delaunay
 
-from .common import *
+from common import *
 
 
 class Validator:
@@ -38,7 +38,7 @@ class PlacementValidator(Validator):
             if r < 0:
                 return False
         # 2. test for line intersection
-        for x, y in zip(hole, np.roll(hole, -1)):
+        # for x, y in zip(hole, np.roll(hole, -1)):
             
 
 

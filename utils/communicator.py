@@ -8,6 +8,7 @@ import os
 import requests
 import json
 import sys
+import click
 
 
 class Communicator:
@@ -47,20 +48,29 @@ class Communicator:
         )
         return response.ok, response.text
 
+    def get_pose_id(self, problem_id=0, pose_id=""):
+        api_key = os.getenv("POSES_API_KEY", None)
+        url = f"{self.base_url}/api/problems/{problem_id}/solutions/{pose_id}"
+        response = requests.get(
+            url,
+            headers={"Authorization": f"Bearer {api_key}"}
+        )
+        if not response.ok:
+            return None
+        return response.json()
 
-if __name__ == "__main__":
-    """
-    Sample call (from repo's main dir):
 
-    python utils/communicator.py problems 1 60
-    """
-    print(sys.argv)
+@click.command()
+@click.argument('target_dir', type=click.Path())  # , help="directory where the puzzles will be saved")
+@click.argument('start', type=int)  # , help="start puzzle id to download")
+@click.argument('end', type=int)  # , help='max puzzle id+1')
+def download_data(target_dir, start, end):
     communicator = Communicator()
     response = communicator.get_hello()
     print("Hello result:", response)
-    target_dir = sys.argv[1]
-    start = int(sys.argv[2])
-    end = int(sys.argv[3])
+    # target_dir = sys.argv[1]
+    # start = int(sys.argv[2])
+    # end = int(sys.argv[3])
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
     for problem_id in range(start, end):
@@ -74,3 +84,12 @@ if __name__ == "__main__":
         # path = os.path.join(path, "problem.json")
         with open(path, 'w') as f:
             f.write(json.dumps(data))
+
+
+if __name__ == "__main__":
+    """
+    Sample call (from repo's main dir):
+
+    python utils/communicator.py problems 1 60
+    """
+    download_data()

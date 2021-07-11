@@ -1,2 +1,5 @@
 requests
 shapely
+click
+numpy
+scipy
