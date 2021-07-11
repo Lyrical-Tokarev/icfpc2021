@@ -1,3 +1,9 @@
+"""
+class to communicate with icfpc server.
+also script which downloads data.
+The code expect environment variable 
+POSES_API_KEY to be set (to team's secret key)
+"""
 import os
 import requests
 import json
