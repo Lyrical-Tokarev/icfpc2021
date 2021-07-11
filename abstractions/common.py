@@ -1,5 +1,11 @@
+import json
 import numpy as np
 
+
+def read_problem(path):
+    with open(path) as f:
+        data = json.load(f)
+    return data
 
 def op(*arrays, operation=np.sum):
     if len(arrays) == 1:
