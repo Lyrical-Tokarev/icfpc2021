@@ -5,6 +5,7 @@ import click
 import json
 import os
 import sys
+import numpy as np
 
 print("cwd=", os.getcwd())
 sys.path.append("abstractions")
@@ -103,7 +104,13 @@ def check_and_send(start, end, solution_dir, problem_dir, verbose):
         data_dir = os.path.join(solution_dir, str(i))
         if not os.path.exists(data_dir):
             continue
-        solutions = sorted(os.listdir(data_dir), key=lambda x: int(x.split("_")[1]))
+        try:
+            solutions = sorted(
+                [x for x in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, x))],
+                key=lambda x: int(np.round(np.float(x.split("_")[1]))))
+        except Exception as e:
+            print(e)
+            print(data_dir, os.listdir(data_dir))
         solutions = [os.path.join(data_dir, x) for x in solutions]
         for sol_dir in solutions:
             result = read_submission_result(sol_dir)

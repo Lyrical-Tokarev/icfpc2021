@@ -74,12 +74,12 @@ def modify_pos(pos, delta, forces, verbose=True):
 
 
 def optimize_positions(figure, current_pos, n_iterations=100, magnets=dict(), delta=0.1,
-        solutions_dir="solutions_new", problem_id=0):
+        solutions_dir="solutions_new", problem_id=0, save=True):
     n = len(current_pos)
     magnets_ = magnets
     for k in range(n_iterations):
         if k > 40:
-            magnets_ = {k: v for k, v in magnets.items() if len(v) == 1}
+            magnets_ = {}#{k: v for k, v in magnets.items() if len(v) == 1}
         # if k > 70:
         #    magnets_= dict()
         forces = compute_forces(
@@ -91,7 +91,8 @@ def optimize_positions(figure, current_pos, n_iterations=100, magnets=dict(), de
         solutions = get_best(figure, current_pos)
         print("sol:", solutions)
         # print(current_pos)
-        save_best_solutions(solutions_dir, problem_id, solutions, figure)
+        if save:
+            save_best_solutions(solutions_dir, problem_id, solutions, figure)
         # figure_shape = MultiLineString(
         #     [(current_pos[s], current_pos[e]) for s, e in edges]
         # )
@@ -100,3 +101,4 @@ def optimize_positions(figure, current_pos, n_iterations=100, magnets=dict(), de
         # draw_pair(
         #     hole_poly, figure_shape, filename=None, label=str(i), new_vert=current_pos
         # )
+    return solutions

@@ -89,11 +89,21 @@ class Figure:
         self.hole = data["hole"]
         self.epsilon = data["epsilon"]
         self.validators = [
-            IntValidator(),
+            # IntValidator(),
             PlacementValidator(self.edges, self.hole),
             EdgesValidator(self.edges, self.vertices, self.hole, self.epsilon),
         ]
+        self.int_validator = IntValidator()
+        self.neighbors = defaultdict(set)
+        for s, e in self.edges:
+            self.neighbors[s].add(e)
+            self.neighbors[e].add(s)
 
+    def get_bounds(self, points):
+        xs = [x for x, y in points]
+        ys = [y for x, y in points]
+        bounds = [np.min(xs), np.min(ys), np.max(xs), np.max(ys)]
+        return bounds
     def validate(self, new_vertices):
         results = [v.check(new_vertices) for v in self.validators]
         return np.all(results)

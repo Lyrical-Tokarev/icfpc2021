@@ -1,4 +1,5 @@
-"""Script for running optimization block
+"""
+Script which shifts image and occationally deforms the figure
 """
 import sys
 import os
@@ -33,5 +34,9 @@ if __name__=="__main__":
         print(figure.vertices, figure.hole)
         #for seed in np.arange(10):
         #    np.random.seed(seed)
-        optimize_positions(figure, current_pos, n_iterations=100, magnets=magnets,
-            solutions_dir="solutions_new", problem_id=problem_id)
+        # optimize_positions(figure, current_pos, n_iterations=100, magnets=magnets,
+        #     solutions_dir="solutions_new", problem_id=problem_id)
+        check_best_angle(
+            figure, current_pos, astep=45, xstep=0.5, ystep=0.5,
+            solutions_dir="solutions_new", problem_id=problem_id
+        )
